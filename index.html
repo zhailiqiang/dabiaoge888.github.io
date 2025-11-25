@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大表哥ROI计算罗盘 v1.0 理性版</title>
+    <!-- 移除可能无法访问的外部资源 -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .app {
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        /* 头部样式 */
+        .header {
+            background-color: #1890ff;
+            color: white;
+            padding: 16px 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .save-btn {
+            background-color: #ffd700;
+            color: #333;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .reset-btn {
+            background-color: transparent;
+            color: white;
+            border: 1px solid white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 24px;
+        }
+
+        /* 左侧区域 */
+        .left-section {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* 数据区块 */
+        .data-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: "";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .input-group input {
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #1890ff;
+        }
+
+        .roi-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .roi-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1890ff;
+        }
+
+        /* 图表样式 */
+        .fund-chart-container {
+            margin-bottom: 12px;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .legend-color.product {
+            background-color: #8c8c8c;
+        }
+
+        .legend-color.platform {
+            background-color: #ffa940;
+        }
+
+        .legend-color.promotion {
+            background-color: #1890ff;
+        }
+
+        .legend-color.profit {
+            background-color: #52c41a;
+        }
+
+        /* 右侧区域 */
+        .right-section {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* 语录卡片 */
+        .quote-card {
+            background-color: #fff7e6;
+            border: 1px solid #ffd591;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .quote-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: #d46b08;
+        }
+
+        .quote-label {
+            background-color: #ffd591;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .quote-content {
+            color: #8a5315;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* 分析区块 */
+        .analysis-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            font-weight: normal;
+            color: #999;
+        }
+
+        .profit-display {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profit-display p {
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .profit-amount {
+            font-size: 32px;
+            font-weight: 600;
+            color: #52c41a;
+            margin-bottom: 4px;
+        }
+
+        .profit-rate {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .roi-comparison {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .roi-box {
+            flex: 1;
+            padding: 16px;
+            border-radius: 8px;
+            background-color: #f0f5ff;
+            text-align: center;
+        }
+
+        .roi-box.actual {
+            background-color: #e6f7ff;
+        }
+
+        .roi-box.生死线 {
+            background-color: #fff7e6;
+        }
+
+        .roi-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .roi-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1890ff;
+        }
+
+        .roi-box.生死线 .roi-number {
+            color: #fa8c16;
+        }
+
+        .margin-rates {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .rate-box {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .rate-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .rate-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1890ff;
+        }
+
+        .status-alert {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .status-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            color: #389e0d;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .status-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .copy-report-btn {
+            width: 100%;
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .copy-report-btn:hover {
+            background-color: #40a9ff;
+        }
+
+        /* 诊断区块 */
+        .diagnosis-section {
+            background-color: #262626;
+            color: white;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .diagnosis-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .diagnosis-header img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        .diagnosis-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .diagnosis-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .diagnosis-item {
+            display: flex;
+            gap: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .diagnosis-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .diagnosis-icon.positive {
+            color: #52c41a;
+        }
+
+        .diagnosis-icon.suggestion {
+            color: #faad14;
+        }
+
+        /* 底部样式 */
+        .footer {
+            background-color: white;
+            padding: 16px 0;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 40px;
+        }
+
+        .footer p {
+            margin: 4px 0;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- 头部导航栏 -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">大表哥ROI计算罗盘 v1.0 理性版</h1>
+                <div class="header-actions">
+                    <a href="https://www.yuque.com/dabiaogedeziliaoku/gu6gpy?#" target="_blank" class="save-btn">大表哥知识库</a>
+                    <button class="reset-btn">清空重来</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要内容区 -->
+        <main class="main-content">
+            <div class="left-section">
+                <!-- 流量与投放数据 -->
+                <section class="data-section">
+                    <h2 class="section-title">流量与投放数据</h2>
+                    <div class="data-grid">
+                        <div class="input-group">
+                            <label>推广花费(元)</label>
+                            <input type="number" id="promotion-cost" value="1000" min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>推广成交额 GMV (元)</label>
+                            <input type="number" id="gmv" value="2590" min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>单次点击成本 PPC (元)</label>
+                            <input type="number" id="ppc" value="1.2" min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>平均客单价 (元)</label>
+                            <input type="number" id="avg-order-value" value="35" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="roi-display">
+                        <span>当前表面投产比 (ROI)</span>
+                        <span class="roi-value" id="current-roi">2.59</span>
+                    </div>
+                </section>
+
+                <!-- 成本结构 -->
+                <section class="data-section">
+                    <h2 class="section-title">成本结构（别骗自己）</h2>
+                    <div class="data-grid">
+                        <div class="input-group">
+                            <label>产品售价 (元)</label>
+                            <input type="number" id="product-price" value="29" min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>拿货/生产成本 (元)</label>
+                            <input type="number" id="product-cost" value="8" min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>平台扣点 (%)</label>
+                            <input type="number" id="platform-fee" value="0.5" min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>预估退款率 (%)</label>
+                            <input type="number" id="refund-rate" value="6.3" min="0" step="0.01">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 资金去向 -->
+                <section class="data-section">
+                    <h2 class="section-title">资金被谁吃掉了？</h2>
+                    <div class="fund-chart-container">
+                        <div id="fund-chart" style="width: 100%; height: 200px;"></div>
+                    </div>
+                    <div class="chart-legend">
+                        <span class="legend-item">
+                            <span class="legend-color product"></span>
+                            货品成本 28%
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-color platform"></span>
+                            平台/退款 7%
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-color promotion"></span>
+                            推广花费 39%
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-color profit"></span>
+                            净利润 27%
+                        </span>
+                    </div>
+                </section>
+            </div>
+
+            <div class="right-section">
+                <!-- 大表哥的语录 -->
+                <div class="quote-card">
+                    <div class="quote-header">
+                        <span class="quote-label">毒舌</span>
+                        <span>大表哥说：</span>
+                    </div>
+                    <div class="quote-content">
+                        一切不以利润为目的的投放，都是耍流氓。
+                    </div>
+                </div>
+
+                <!-- 最终分析 -->
+                <section class="analysis-section">
+                    <h2 class="section-title">最终分析 <span class="subtitle">含退款损耗</span></h2>
+                    <div class="profit-display">
+                        <p>到底赚了多少钱？</p>
+                        <div class="profit-amount" id="net-profit">¥ 745.23</div>
+                        <div class="profit-rate">净利率: <span id="profit-rate-value">28.77%</span></div>
+                    </div>
+                    <div class="roi-comparison">
+                        <div class="roi-box actual">
+                            <div class="roi-label">实际 ROI</div>
+                            <div class="roi-number" id="actual-roi">2.59</div>
+                        </div>
+                        <div class="roi-box 生死线">
+                            <div class="roi-label">生死线 ROI</div>
+                            <div class="roi-number" id="break-even-roi">1.48</div>
+                        </div>
+                    </div>
+                    <div class="margin-rates">
+                        <div class="rate-box">
+                            <div class="rate-label">毛利率</div>
+                            <div class="rate-number" id="gross-margin">71.9%</div>
+                        </div>
+                        <div class="rate-box">
+                            <div class="rate-label">保本转化率</div>
+                            <div class="rate-number" id="break-even-conversion">5.09%</div>
+                        </div>
+                    </div>
+                    <div class="status-alert">
+                        <div class="status-content">
+                            <span class="status-icon success">✓</span>
+                            处于盈利状态。但记住，电商没有永远的赢家，只有永远的优化。
+                        </div>
+                    </div>
+                    <button class="copy-report-btn">复制战报(拿去复盘)</button>
+                </section>
+
+                <!-- 诊断 -->
+                <section class="diagnosis-section">
+                    <div class="diagnosis-header">
+                        <img src="https://via.placeholder.com/32" alt="头像">
+                        <h3>大表哥的诊断</h3>
+                    </div>
+                    <div class="diagnosis-content">
+                        <div class="diagnosis-item">
+                            <span class="diagnosis-icon positive">✓</span>
+                            现状不错；但别躺平。电商是逆水行舟，你的 ROI只要跌破1.48，利润瞬间清零。
+                        </div>
+                        <div class="diagnosis-item">
+                            <span class="diagnosis-icon suggestion">!</span>
+                            激进打法：想抢流量？你的PPC如果敢出到¥2.09，那你就纯粹是在帮平台打工了（利润点）。自己掂量。
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>最终权益 大表哥的知识库 1.0</p>
+            <p>让运营决策更有依据</p>
+        </footer>
+    </div>
+
+    <!-- 添加echarts库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script>
+        // 初始化图表
+        let fundChart = echarts.init(document.getElementById('fund-chart'));
+        
+        // 获取所有输入元素
+        const inputs = {
+            promotionCost: document.getElementById('promotion-cost'),
+            gmv: document.getElementById('gmv'),
+            ppc: document.getElementById('ppc'),
+            avgOrderValue: document.getElementById('avg-order-value'),
+            productPrice: document.getElementById('product-price'),
+            productCost: document.getElementById('product-cost'),
+            platformFee: document.getElementById('platform-fee'),
+            refundRate: document.getElementById('refund-rate')
+        };
+
+        // 获取所有显示元素
+        const displays = {
+            currentRoi: document.getElementById('current-roi'),
+            netProfit: document.getElementById('net-profit'),
+            profitRate: document.getElementById('profit-rate-value'),
+            actualRoi: document.getElementById('actual-roi'),
+            breakEvenRoi: document.getElementById('break-even-roi'),
+            grossMargin: document.getElementById('gross-margin'),
+            breakEvenConversion: document.getElementById('break-even-conversion')
+        };
+
+        // 获取按钮元素
+        const resetBtn = document.querySelector('.reset-btn');
+        const saveBtn = document.querySelector('.save-btn');
+        const copyReportBtn = document.querySelector('.copy-report-btn');
+        const statusAlert = document.querySelector('.status-alert');
+        const statusContent = document.querySelector('.status-content');
+        const statusIcon = document.querySelector('.status-icon');
+
+        // 格式化数字为货币格式
+        function formatCurrency(value) {
+            return '¥ ' + value.toFixed(2);
+        }
+
+        // 格式化百分比
+        function formatPercent(value) {
+            return value.toFixed(2) + '%';
+        }
+
+        // 计算所有指标
+        function calculateAll() {
+            // 获取输入值
+            const promotionCost = parseFloat(inputs.promotionCost.value) || 0;
+            const gmv = parseFloat(inputs.gmv.value) || 0;
+            const ppc = parseFloat(inputs.ppc.value) || 0;
+            const avgOrderValue = parseFloat(inputs.avgOrderValue.value) || 0;
+            const productPrice = parseFloat(inputs.productPrice.value) || 0;
+            const productCost = parseFloat(inputs.productCost.value) || 0;
+            const platformFeePercent = parseFloat(inputs.platformFee.value) || 0;
+            const refundRatePercent = parseFloat(inputs.refundRate.value) || 0;
+
+            // 基础计算
+            const currentRoi = gmv > 0 ? gmv / promotionCost : 0;
+            const platformFeeAmount = gmv * (platformFeePercent / 100);
+            const refundAmount = gmv * (refundRatePercent / 100);
+            
+            // 计算毛利率
+            const grossMargin = productPrice > 0 ? ((productPrice - productCost) / productPrice) * 100 : 0;
+            
+            // 计算净利润
+            const totalProductsSold = gmv > 0 ? gmv / productPrice : 0;
+            const totalProductCost = totalProductsSold * productCost;
+            const netProfit = gmv - totalProductCost - platformFeeAmount - refundAmount - promotionCost;
+            const profitRate = gmv > 0 ? (netProfit / gmv) * 100 : 0;
+            
+            // 计算实际ROI (考虑退款后的实际投入产出比)
+            const actualRoi = promotionCost > 0 ? (gmv - refundAmount) / promotionCost : 0;
+            
+            // 计算生死线ROI (盈亏平衡点的ROI)
+            // 盈亏平衡点: 收入 = 成本
+            // 收入 = GMV - 退款
+            // 成本 = 产品成本 + 平台扣点 + 推广花费
+            // GMV - 退款 = 产品成本 + 平台扣点 + 推广花费
+            // GMV - GMV*退款率% = GMV*产品成本率 + GMV*平台扣点% + 推广花费
+            // 整理后得出盈亏平衡时的ROI
+            const productCostRate = productCost / productPrice;
+            const breakEvenRoi = 1 / (1 - productCostRate - platformFeePercent/100 - refundRatePercent/100);
+            
+            // 计算保本转化率
+            // 保本转化率 = (推广花费 / 客单价) / (GMV / 客单价) * 100%
+            // 简化: 保本转化率 = 推广花费 / GMV * 100%
+            const breakEvenConversion = gmv > 0 ? (promotionCost / gmv) * 100 : 0;
+            
+            // 更新显示
+            displays.currentRoi.textContent = currentRoi.toFixed(2);
+            displays.netProfit.textContent = formatCurrency(netProfit);
+            displays.profitRate.textContent = formatPercent(profitRate);
+            displays.actualRoi.textContent = actualRoi.toFixed(2);
+            displays.breakEvenRoi.textContent = breakEvenRoi.toFixed(2);
+            displays.grossMargin.textContent = formatPercent(grossMargin);
+            displays.breakEvenConversion.textContent = formatPercent(breakEvenConversion);
+            
+            // 更新状态提示
+            if (netProfit > 0) {
+                statusIcon.className = 'status-icon success';
+                statusIcon.textContent = '✓';
+                statusContent.style.color = '#389e0d';
+                statusContent.innerHTML = '<span class="status-icon success">✓</span> 处于盈利状态。但记住，电商没有永远的赢家，只有永远的优化。';
+                statusAlert.style.backgroundColor = '#f6ffed';
+                statusAlert.style.borderColor = '#b7eb8f';
+            } else {
+                statusIcon.className = 'status-icon warning';
+                statusIcon.textContent = '!';
+                statusContent.style.color = '#d4380d';
+                statusContent.innerHTML = '<span class="status-icon warning">!</span> 处于亏损状态。请检查成本结构和推广策略，尽快调整。';
+                statusAlert.style.backgroundColor = '#fff1f0';
+                statusAlert.style.borderColor = '#ffccc7';
+            }
+            
+            // 更新资金去向图表数据
+            const productCostPercent = gmv > 0 ? (totalProductCost / gmv) * 100 : 0;
+            const platformFeePercentValue = platformFeePercent;
+            const refundPercentValue = refundRatePercent;
+            const promotionPercent = gmv > 0 ? (promotionCost / gmv) * 100 : 0;
+            const profitPercent = gmv > 0 ? (netProfit / gmv) * 100 : 0;
+            
+            // 更新图表
+            updateFundChart([
+                { name: '货品成本', value: productCostPercent, itemStyle: { color: '#8c8c8c' } },
+                { name: '平台/退款', value: platformFeePercentValue + refundPercentValue, itemStyle: { color: '#ffa940' } },
+                { name: '推广花费', value: promotionPercent, itemStyle: { color: '#1890ff' } },
+                { name: '净利润', value: profitPercent, itemStyle: { color: '#52c41a' } }
+            ]);
+            
+            // 更新图例文本
+            const legends = document.querySelectorAll('.chart-legend .legend-item');
+            legends[0].textContent = `货品成本 ${productCostPercent.toFixed(0)}%`;
+            legends[1].textContent = `平台/退款 ${(platformFeePercentValue + refundPercentValue).toFixed(0)}%`;
+            legends[2].textContent = `推广花费 ${promotionPercent.toFixed(0)}%`;
+            legends[3].textContent = `净利润 ${profitPercent.toFixed(0)}%`;
+            
+            // 返回所有计算结果用于保存
+            return {
+                promotionCost,
+                gmv,
+                ppc,
+                avgOrderValue,
+                productPrice,
+                productCost,
+                platformFeePercent,
+                refundRatePercent,
+                currentRoi,
+                netProfit,
+                profitRate,
+                actualRoi,
+                breakEvenRoi,
+                grossMargin,
+                breakEvenConversion,
+                productCostPercent,
+                platformFeePercentValue,
+                refundPercentValue,
+                promotionPercent,
+                profitPercent
+            };
+        }
+
+        // 更新资金去向图表
+        function updateFundChart(data) {
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    },
+                    formatter: function(params) {
+                        return params[0].name + ': ' + params[0].value.toFixed(1) + '%';
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: data.map(item => item.name),
+                    axisLabel: {
+                        fontSize: 12,
+                        interval: 0,
+                        rotate: 0
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '%',
+                    axisLabel: {
+                        formatter: '{value}%'
+                    }
+                },
+                series: [{
+                    type: 'bar',
+                    data: data.map(item => ({
+                        value: item.value,
+                        itemStyle: item.itemStyle
+                    })),
+                    barWidth: '60%',
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: '{c}%',
+                        fontSize: 12
+                    }
+                }]
+            };
+            
+            fundChart.setOption(option);
+        }
+
+        // 清空重来功能
+        function resetCalculator() {
+            if (confirm('确定要清空所有数据吗？')) {
+                for (const key in inputs) {
+                    if (key === 'promotionCost') inputs[key].value = '1000';
+                    else if (key === 'gmv') inputs[key].value = '2590';
+                    else if (key === 'ppc') inputs[key].value = '1.2';
+                    else if (key === 'avgOrderValue') inputs[key].value = '35';
+                    else if (key === 'productPrice') inputs[key].value = '29';
+                    else if (key === 'productCost') inputs[key].value = '8';
+                    else if (key === 'platformFee') inputs[key].value = '0.5';
+                    else if (key === 'refundRate') inputs[key].value = '6.3';
+                }
+                calculateAll();
+                localStorage.removeItem('roiCalculatorData');
+            }
+        }
+
+        // 导出表格功能
+        function exportToExcel() {
+            const data = calculateAll();
+            
+            // 创建CSV内容
+            let csvContent = `大表哥ROI计算罗盘战报\n`;
+            csvContent += `===============================================\n`;
+            csvContent += `基础数据,数值,单位\n`;
+            csvContent += `推广花费,${data.promotionCost},元\n`;
+            csvContent += `推广成交额 GMV,${data.gmv},元\n`;
+            csvContent += `单次点击成本 PPC,${data.ppc},元\n`;
+            csvContent += `平均客单价,${data.avgOrderValue},元\n`;
+            csvContent += `产品售价,${data.productPrice},元\n`;
+            csvContent += `拿货/生产成本,${data.productCost},元\n`;
+            csvContent += `平台扣点,${data.platformFeePercent},%\n`;
+            csvContent += `预估退款率,${data.refundRatePercent},%\n`;
+            csvContent += `\n`;
+            csvContent += `计算结果,数值,单位\n`;
+            csvContent += `当前表面投产比 (ROI),${data.currentRoi.toFixed(2)},\n`;
+            csvContent += `实际 ROI,${data.actualRoi.toFixed(2)},\n`;
+            csvContent += `生死线 ROI,${data.breakEvenRoi.toFixed(2)},\n`;
+            csvContent += `净利润,${data.netProfit.toFixed(2)},元\n`;
+            csvContent += `净利率,${data.profitRate.toFixed(2)},%\n`;
+            csvContent += `毛利率,${data.grossMargin.toFixed(2)},%\n`;
+            csvContent += `保本转化率,${data.breakEvenConversion.toFixed(2)},%\n`;
+            csvContent += `\n`;
+            csvContent += `资金去向占比,数值,单位\n`;
+            csvContent += `货品成本,${data.productCostPercent.toFixed(1)},%\n`;
+            csvContent += `平台/退款,${(data.platformFeePercentValue + data.refundPercentValue).toFixed(1)},%\n`;
+            csvContent += `推广花费,${data.promotionPercent.toFixed(1)},%\n`;
+            csvContent += `净利润,${data.profitPercent.toFixed(1)},%\n`;
+            csvContent += `\n`;
+            csvContent += `===============================================\n`;
+            csvContent += `Powered by 大表哥ROI计算罗盘 v1.0\n`;
+            csvContent += `生成时间:${new Date().toLocaleString()}\n`;
+            
+            // 创建下载链接
+            const encodedUri = encodeURI('data:text/csv;charset=utf-8,%EF%BB%BF' + csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', '大表哥ROI计算战报.csv');
+            document.body.appendChild(link);
+            
+            // 模拟点击下载
+            link.click();
+            
+            // 清理
+            document.body.removeChild(link);
+            
+            alert('战报已导出为CSV表格！');
+        }
+
+        // 从本地存储加载数据
+        function loadSavedData() {
+            const savedData = localStorage.getItem('roiCalculatorData');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    inputs.promotionCost.value = data.promotionCost || '0';
+                    inputs.gmv.value = data.gmv || '0';
+                    inputs.ppc.value = data.ppc || '0';
+                    inputs.avgOrderValue.value = data.avgOrderValue || '0';
+                    inputs.productPrice.value = data.productPrice || '0';
+                    inputs.productCost.value = data.productCost || '8';
+                    inputs.platformFee.value = data.platformFeePercent || '0.5';
+                    inputs.refundRate.value = data.refundRatePercent || '6.3';
+                    return true;
+                } catch (e) {
+                    console.error('加载数据失败:', e);
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        // 初始化函数
+        function init() {
+            // 尝试加载保存的数据，否则使用默认值
+            loadSavedData();
+            
+            // 初始计算
+            calculateAll();
+            
+            // 添加输入事件监听器
+            for (const key in inputs) {
+                inputs[key].addEventListener('input', calculateAll);
+            }
+            
+            // 添加按钮事件监听器
+            resetBtn.addEventListener('click', resetCalculator);
+            copyReportBtn.addEventListener('click', exportToExcel);
+            
+            // 窗口大小改变时重新调整图表
+            window.addEventListener('resize', function() {
+                fundChart.resize();
+            });
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
